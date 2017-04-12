@@ -1,0 +1,16 @@
+"name": "nodejs-hello-world",
+"version": "0.0.1",
+"description": "Node.js Hello World for OpenShift 3",
+"main": "helloworld.js",
+"dependencies": {
+"ejs": "^2.4.1",
+"express": "^4.13.4"
+},
+"scripts": {
+"start": "node helloworld.js"
+},
+"repository": {
+"type": "git",
+"url": "https://github.com/lmcfrha/HelloWorld.git"
+}
+}
