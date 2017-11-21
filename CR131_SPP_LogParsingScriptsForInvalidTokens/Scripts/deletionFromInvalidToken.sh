@@ -11,9 +11,19 @@ source ./config.sh
 
 if [ -f $LAST_LOG_PROCESSED ]; then
    LOG_FILE_NAME=`cat $LAST_LOG_PROCESSED`
-   LOGS_TO_PARSE=`cd $LOGFOLDER;find . -maxdepth 1 -type f -regex $LOGFILEPATTERN -newer $LOG_FILE_NAME | xargs ls -tr`
+   LOG_FILES=`cd $LOGFOLDER;find . -maxdepth 1 -type f -regex $LOGFILEPATTERN -newer $LOG_FILE_NAME`
+   if [[ $LOG_FILES == "" ]];then
+      LOGS_TO_PARSE=""
+   else
+      LOGS_TO_PARSE=`cd $LOGFOLDER;echo $LOG_FILES | xargs ls -tr`
+   fi
 else
-   LOGS_TO_PARSE=`cd $LOGFOLDER;find . -maxdepth 1 -type f -regex $LOGFILEPATTERN -mmin -60 | xargs ls -tr`
+   LOG_FILES=`cd $LOGFOLDER;find . -maxdepth 1 -type f -regex $LOGFILEPATTERN -mmin -60`
+   if [[ $LOG_FILES == "" ]];then
+      LOGS_TO_PARSE=""
+   else
+      LOGS_TO_PARSE=`cd $LOGFOLDER;echo $LOG_FILES | xargs ls -tr`
+   fi
 fi
 
 for logfile in $LOGS_TO_PARSE

@@ -17,10 +17,9 @@ TOKEN_SERVICE_GCM="/*[self::E1030 or self::E218]"
 TIMESTAMP_GCM="/*[self::E74]"
 # The max time the CURL request for deletion waits for an answer (sec):
 CURL_TIMEOUT=3
-# The AOG to which the request for deletion are sent (opposite AOG):
-CC_ENDPOINT="http://localhost:8081/ses/customercare/v2/services"
-CC_USER="bob"
-CC_PASSWORD="bob123"
+CC_ENDPOINT="http://odp4care2lab1.msg.lab.t-mobile.com/ses/customercare/v2/services"
+CC_USER="customercare"
+CC_PASSWORD="ccpwd"
 CC_ADDINFO="App Uninstall"
 #
 LAST_LOG_PROCESSED="/opt/ericsson/CR131/last_log_processed"
