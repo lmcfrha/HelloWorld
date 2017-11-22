@@ -20,7 +20,7 @@ CURL_TIMEOUT=3
 CC_ENDPOINT="http://odp4care2lab1.msg.lab.t-mobile.com/ses/customercare/v2/services"
 CC_USER="customercare"
 CC_PASSWORD="ccpwd"
-CC_ADDINFO="App Uninstall"
+CC_ADDINFO="App+Uninstall"
 #
 LAST_LOG_PROCESSED="/opt/ericsson/CR131/last_log_processed"
 LAST_LOG_PROCESSED_GCM="/opt/ericsson/CR131/last_log_processed_GCM"
