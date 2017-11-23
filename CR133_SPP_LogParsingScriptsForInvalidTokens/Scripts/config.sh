@@ -26,6 +26,19 @@ LAST_LOG_PROCESSED="/opt/ericsson/CR133/last_log_processed"
 LAST_LOG_PROCESSED_GCM="/opt/ericsson/CR133/last_log_processed_GCM"
 
 JANKSY_TAC_LIST=".*|^35935806$|^35774606$|^35946206$|^35936206$|^35936106$|^35946406$|^35936406$|^35936306$|^35946506$|^35914606$|^35773006$|^35971506$|^35911606$|^35971706$|^35971806$|^35971906$|^35972006$|^35972106$|^35375307$|^35256707$|^35375407$|^35375207$|^35775207$|^35591607$|^35975507$|^35975407$|^35721907$|^35616407$|^35775107$|^35501808$|^35598708$|^35775408$|^35775308$|^35598008$|^35775808$|^35775908$|^35561908$|^35375607$|^35375707$|^35255707$|^35403407$|^35403507$|^35600007$|^35672907$|^35882907$"
+NATIVE_IOS_DEVID="^[\d]*$"
+
+# Services black list: do not send CC Delete nor Delete Push Token
+SERVICES_BL="^vvm$|^genp$|^multi-sim$"
+
+# Services list for CC delete vowifi (SES API)
+CALL_CC_DELETE_VOWIFI="^vowifi$|^voip$|^voipstg$|^newvowifi$"
+# Services list for bypassing delete push token (SPP API)
+NOCALL_DELETE_PUSH_TOKEN="^vowifi$"
+
+DPT_ENDPOINT="http://odp4care2lab1.msg.lab.t-mobile.com/spp/token/v2"
+DPT_USER="ses"
+DPT_PASSWORD="ses01"
 
 DATE=`date +%Y-%m-%d`
 APPLOGFOLDER="./logs"
@@ -48,6 +61,16 @@ then
 
 else
    echo "true"
+fi
+}
+
+function nativeIOS {
+device=$1
+if [[ $device =~ $NATIVE_IOS_DEVID ]]
+then
+   echo "true"
+else
+   echo "false"
 fi
 }
 

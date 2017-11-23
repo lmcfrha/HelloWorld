@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 ###########################################
 # CONFIG PARAMETERS AND FUNCTION DEFINITION
 ###########################################
@@ -34,7 +34,6 @@ fi
 
 for logfile in $LOGS_TO_PARSE
 do
-
 ##########################################
 # On each log file,
 # Use XPATH to extract invalid token-service and timestamp
@@ -55,66 +54,85 @@ do
   until [ $index -gt $max ]; do
       apnsToken=${parsed[$index]}
       service=${parsed[$index+1]}
+	  
+#######################################
+#     Check Services Black List
+#######################################
+      if [[ ! ($service =~ $SERVICES_BL) ]]; then 
+	     
 #######################################
 #     Log timestamp, convert to Epoc
 #######################################
-      dateFromLog=`echo $parsedTimeStamp | cut -d";" -f$index_ts`
-      dateEpocLog=`date "+%s" -d "$dateFromLog"`
+         dateFromLog=`echo $parsedTimeStamp | cut -d";" -f$index_ts`
+         dateEpocLog=`date "+%s" -d "$dateFromLog"`
 
 # echo "$apnsToken $service $dateFromLog $dateEpocLog"
-      msisdn_devId=(`java -jar dbquery.jar msisdn $apnsToken $service`)
+         msisdn_devId=(`java -jar dbquery.jar msisdn $apnsToken $service`)
 echo -e "\n$(date)\nLog timestamp:  $dateFromLog Check DB for $apnsToken and $service:\n ${msisdn_devId[@]}" >> $APPLOGFOLDER/scriptLogs_${DATE}.log
 
 ##########################################
-# Filter out Janski devices
+# Filter out Janski devices AND Native IOS devices
 ##########################################
-      n=0
-      let "msisdnNb=${#msisdn_devId[@]}-2"
-      until [ $n -gt $msisdnNb ]; do
+         n=0
+         let "msisdnNb=${#msisdn_devId[@]}-2"
+         until [ $n -gt $msisdnNb ]; do
 # Ignore if Janski
-          msisdnX=${msisdn_devId[$n]}
-          devIdX=${msisdn_devId[$n+1]}
-          isNotJanski=`notJanski $devIdX]}`
+            msisdnX=${msisdn_devId[$n]}
+            devIdX=${msisdn_devId[$n+1]}
+            isNativeIOS=`nativeIOS $devIdx`
+            isNotJanski=`notJanski $devIdX`
 echo -e "\n...$msisdnX is not Janski: $isNotJanski" >> $APPLOGFOLDER/scriptLogs_${DATE}.log
-          if [[ $isNotJanski == 'true' ]]
-          then
+            if [[ $isNotJanski == 'true' || $isNativeIOS == "false" ]]
+            then
 ##########################################
 # Not Janski: before deleting, proceed to query DB based on MSISDN and Service (and DevId)
 # and check that all DB timestamps are older than log the log timestamp before deleting
 # If more recent, don't delete.
 ##########################################
-              token_timestamp=(`java -jar dbquery.jar token $msisdnX $service $devIdX`)
+               token_timestamp=(`java -jar dbquery.jar token $msisdnX $service $devIdX`)
 echo -e "...Check DB based on $msisdnX $service $devIdX\n...${token_timestamp[@]}" >> $APPLOGFOLDER/scriptLogs_${DATE}.log
-              t=0
-              isStale=true
-              let "tokenNb=${#token_timestamp[@]}-2"
-              until [ $t -gt $tokenNb ]; do
+               t=0
+               isStale=true
+               let "tokenNb=${#token_timestamp[@]}-2"
+               until [ $t -gt $tokenNb ]; do
                   timeStampX=${token_timestamp[$t+1]}
                   let age=$(( $timeStampX - $dateEpocLog ))
                   if [[ $age -gt 0 ]]; then
                      isStale=false
-echo "......$timeStampX - $dateEpocLog = $age NOT stale, NOT calling CC delete" >> $APPLOGFOLDER/scriptLogs_${DATE}.log
+echo "......$timeStampX - $dateEpocLog = $age NOT stale, NOT calling CC delete or DeletePushToken" >> $APPLOGFOLDER/scriptLogs_${DATE}.log
                   fi
                   let t=t+2
-              done
+               done
 
 ############################################
-# CC delete if stale:
+# CC delete and Delete Push Token logic
 ############################################
-              if [[ "$isStale" == true ]]; then
+               if [[ "$isStale" == true ]]; then
+echo -e "\n `date`" >> $APPLOGFOLDER/PARSED_${logfile:2}
+	          if [[ $service =~ $CALL_CC_DELETE_VOWIFI ]]; then
 echo "......$timeStampX - $dateEpocLog = $age stale, calling CC delete"  >> $APPLOGFOLDER/scriptLogs_${DATE}.log
-                 curlCmd="curl -i -X DELETE -H Accept:application/json -H Content-Type:application/json -u $CC_USER:$CC_PASSWORD '$CC_ENDPOINT?msisdn=$msisdnX&deviceId=$devIdX&serviceNames=$service&additionalInfo=$CC_ADDINFO'"
-                 curl -i -X DELETE -H Accept:application/json -H Content-Type:application/json -u $CC_USER:$CC_PASSWORD "$CC_ENDPOINT?msisdn=$msisdnX&deviceId=$devIdX&serviceNames=$service&additionalInfo=$CC_ADDINFO"
-                 echo  $apnsToken $service $msisdnX $devIdX " NotJanski Stale" $curlCmd >> $APPLOGFOLDER/PARSED_${logfile:2}
-              else
-                 echo  $apnsToken $service $msisdnX $devIdX " NotJanski NOTStale"  >> $APPLOGFOLDER/PARSED_${logfile:2}
-              fi
-          else
-             echo  $apnsToken $service $msisdnX $devIdX "Janski" >> $APPLOGFOLDER/PARSED_${logfile:2}
-          fi
-          let n=n+2
-      done
-
+                     curlCmd="curl -i -X DELETE -H Accept:application/json -H Content-Type:application/json -u $CC_USER:$CC_PASSWORD '$CC_ENDPOINT?msisdn=$msisdnX&deviceId=$devIdX&serviceNames=vowifi&additionalInfo=$CC_ADDINFO'"
+                     curl -i -X DELETE -H Accept:application/json -H Content-Type:application/json -u $CC_USER:$CC_PASSWORD "$CC_ENDPOINT?msisdn=$msisdnX&deviceId=$devIdX&serviceNames=vowifi&additionalInfo=$CC_ADDINFO"
+                     echo  $apnsToken $service $msisdnX $devIdX " NotJanski, Not NativeIOS Stale" $curlCmd >> $APPLOGFOLDER/PARSED_${logfile:2}
+                  fi
+		  if [[ ! ($service =~ $NOCALL_DELETE_PUSH_TOKEN) ]]; then
+echo "......calling Delete Push Token"  >> $APPLOGFOLDER/scriptLogs_${DATE}.log
+                     curlCmd="curl -i -X DELETE -H Content-Type:application/json -H x-requestor-name:mts -u $DPT_USER:$DPT_PASSWORD '$DPT_ENDPOINT?msisdn=$msisdnX&device-id=$devIdX&service-name=$service'"
+                     curl -i -X DELETE -H Content-Type:application/json -H x-requestor-name:mts -u $DPT_USER:$DPT_PASSWORD "$DPT_ENDPOINT?msisdn=$msisdnX&device-id=$devIdX&service-name=$service"
+                     echo  $apnsToken $service $msisdnX $devIdX " NotJanski, Not NativeIOS Stale" $curlCmd >> $APPLOGFOLDER/PARSED_${logfile:2}                     
+#curl -v -X DELETE -H 'Content-Type: application/json' -H 'x-requestor-name: mts' -u ses:ses01 "http://$myIP:8084/spp/token/v2?imsi={$myimsi}&msisdn={$mymsisdn}&device-id={$mydevid}&service-name={vowifi,vowifistg,voipstg,voipstg,voip,newvowifi}"
+		  fi
+               else
+                 echo  $apnsToken $service $msisdnX $devIdX " NotJanski, NotNativeIOS, NotStale"  >> $APPLOGFOLDER/PARSED_${logfile:2}
+               fi
+            else
+               echo  $apnsToken $service $msisdnX $devIdX "Janski or NativeIOS" >> $APPLOGFOLDER/PARSED_${logfile:2}
+            fi
+            let n=n+2
+          done
+      else
+	     echo  $apnsToken $service "service ignored (belongs to SERVICES_BL)" >> $APPLOGFOLDER/PARSED_${logfile:2}
+	  fi
       let index=index+2
   done
   echo ${logfile:2} > $LAST_LOG_PROCESSED
