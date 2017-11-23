@@ -1,15 +1,19 @@
-#!/bin/bash 
+#!/bin/bash
 ###########################################
 # CONFIG PARAMETERS AND FUNCTION DEFINITION
 ###########################################
 #
 source ./config.sh
 
+if [ -f runningFirst ]; then
+   exit
+fi
 ###########################################
 # Select the logs which need to be parsed
 ###########################################
 
 if [ -f $LAST_LOG_PROCESSED ]; then
+   echo `date`" Crontab APNS channel Execution" >> $APPLOGFOLDER/scriptLogs_${DATE}.log
    LOG_FILE_NAME=`cat $LAST_LOG_PROCESSED`
    LOG_FILES=`cd $LOGFOLDER;find . -maxdepth 1 -type f -regex $LOGFILEPATTERN -newer $LOG_FILE_NAME`
    if [[ $LOG_FILES == "" ]];then
@@ -18,7 +22,9 @@ if [ -f $LAST_LOG_PROCESSED ]; then
       LOGS_TO_PARSE=`cd $LOGFOLDER;echo $LOG_FILES | xargs ls -tr`
    fi
 else
-   LOG_FILES=`cd $LOGFOLDER;find . -maxdepth 1 -type f -regex $LOGFILEPATTERN -mmin -60`
+   touch runningFirst
+   echo `date`" InitialAPNS Execution" >> $APPLOGFOLDER/scriptLogs_${DATE}.log
+   LOG_FILES=`cd $LOGFOLDER;find . -maxdepth 1 -type f -regex $LOGFILEPATTERN -mmin -$BACKLOGINITIAL`
    if [[ $LOG_FILES == "" ]];then
       LOGS_TO_PARSE=""
    else
@@ -36,7 +42,7 @@ do
 
   parsed=(`xmllint --xpath "$XPATH$TOKEN_SERVICE" $LOGFOLDER/$logfile | sed 's/<E22>\|<E28>/ /g; s/<\/E22>\|<\/E28>//g'`)
   parsedTimeStamp=`xmllint --xpath "$XPATH$TIMESTAMP" $LOGFOLDER/$logfile | sed 's/<E74>//g; s/<\/E74>/;/g'`
- 
+
   index=0
   index_ts=1
   let "max=${#parsed[@]}-2"
@@ -54,13 +60,13 @@ do
 #######################################
       dateFromLog=`echo $parsedTimeStamp | cut -d";" -f$index_ts`
       dateEpocLog=`date "+%s" -d "$dateFromLog"`
- 
-# echo "$apnsToken $service $dateFromLog $dateEpocLog" 
+
+# echo "$apnsToken $service $dateFromLog $dateEpocLog"
       msisdn_devId=(`java -jar dbquery.jar msisdn $apnsToken $service`)
 echo -e "\n$(date)\nLog timestamp:  $dateFromLog Check DB for $apnsToken and $service:\n ${msisdn_devId[@]}" >> $APPLOGFOLDER/scriptLogs_${DATE}.log
 
 ##########################################
-# Filter out Janski devices 
+# Filter out Janski devices
 ##########################################
       n=0
       let "msisdnNb=${#msisdn_devId[@]}-2"
@@ -73,8 +79,8 @@ echo -e "\n...$msisdnX is not Janski: $isNotJanski" >> $APPLOGFOLDER/scriptLogs_
           if [[ $isNotJanski == 'true' ]]
           then
 ##########################################
-# Not Janski: before deleting, proceed to query DB based on MSISDN and Service (and DevId) 
-# and check that all DB timestamps are older than log the log timestamp before deleting 
+# Not Janski: before deleting, proceed to query DB based on MSISDN and Service (and DevId)
+# and check that all DB timestamps are older than log the log timestamp before deleting
 # If more recent, don't delete.
 ##########################################
               token_timestamp=(`java -jar dbquery.jar token $msisdnX $service $devIdX`)
@@ -85,9 +91,9 @@ echo -e "...Check DB based on $msisdnX $service $devIdX\n...${token_timestamp[@]
               until [ $t -gt $tokenNb ]; do
                   timeStampX=${token_timestamp[$t+1]}
                   let age=$(( $timeStampX - $dateEpocLog ))
-                  if [[ $age -gt 0 ]]; then 
+                  if [[ $age -gt 0 ]]; then
                      isStale=false
-echo "......$timeStampX - $dateEpocLog = $age NOT stale, NOT calling CC delete" >> $APPLOGFOLDER/scriptLogs_${DATE}.log  
+echo "......$timeStampX - $dateEpocLog = $age NOT stale, NOT calling CC delete" >> $APPLOGFOLDER/scriptLogs_${DATE}.log
                   fi
                   let t=t+2
               done
@@ -99,7 +105,7 @@ echo "......$timeStampX - $dateEpocLog = $age NOT stale, NOT calling CC delete" 
 echo "......$timeStampX - $dateEpocLog = $age stale, calling CC delete"  >> $APPLOGFOLDER/scriptLogs_${DATE}.log
                  curlCmd="curl -i -X DELETE -H Accept:application/json -H Content-Type:application/json -u $CC_USER:$CC_PASSWORD '$CC_ENDPOINT?msisdn=$msisdnX&deviceId=$devIdX&serviceNames=$service&additionalInfo=$CC_ADDINFO'"
                  curl -i -X DELETE -H Accept:application/json -H Content-Type:application/json -u $CC_USER:$CC_PASSWORD "$CC_ENDPOINT?msisdn=$msisdnX&deviceId=$devIdX&serviceNames=$service&additionalInfo=$CC_ADDINFO"
-                 echo  $apnsToken $service $msisdnX $devIdX $curlCmd >> $APPLOGFOLDER/PARSED_${logfile:2} 
+                 echo  $apnsToken $service $msisdnX $devIdX " NotJanski Stale" $curlCmd >> $APPLOGFOLDER/PARSED_${logfile:2}
               else
                  echo  $apnsToken $service $msisdnX $devIdX " NotJanski NOTStale"  >> $APPLOGFOLDER/PARSED_${logfile:2}
               fi
@@ -117,4 +123,11 @@ done
 # Log Cleanup
 ############################################
 find $APPLOGFOLDER/ -maxdepth 1 -type f -mtime +$LOGRETENTION -exec rm {} \;
+
+if [[ -f runningFirst ]]; then
+   rm -f runningFirst
+   echo `date`" InitialAPNS Execution Completed" >> $APPLOGFOLDER/scriptLogs_${DATE}.log
+else
+   echo `date`" Crontab APNS channel Execution Completed" >> $APPLOGFOLDER/scriptLogs_${DATE}.log
+fi
 exit

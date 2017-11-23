@@ -5,11 +5,15 @@
 #
 source ./config.sh
 
+if [ -f runningFirstGCM ]; then
+   exit
+fi
 ###########################################
 # Select the logs which need to be parsed
 ###########################################
 
 if [ -f $LAST_LOG_PROCESSED_GCM ]; then
+   echo `date`" Crontab GCM channel Execution" >> $APPLOGFOLDER/scriptGCMLogs_${DATE}.log   
    LOG_FILE_NAME=`cat $LAST_LOG_PROCESSED_GCM`
    LOG_FILES=`cd $LOGFOLDER;find . -maxdepth 1 -type f -regex $LOGFILEPATTERN -newer $LOG_FILE_NAME`
    if [[ $LOG_FILES == "" ]];then
@@ -18,7 +22,9 @@ if [ -f $LAST_LOG_PROCESSED_GCM ]; then
       LOGS_TO_PARSE=`cd $LOGFOLDER;echo $LOG_FILES | xargs ls -tr`
    fi
 else
-   LOG_FILES=`cd $LOGFOLDER;find . -maxdepth 1 -type f -regex $LOGFILEPATTERN -mmin -60`
+   touch runningFirstGCM
+   echo `date`" InitialGCM Execution" >> $APPLOGFOLDER/scriptGCMLogs_${DATE}.log
+   LOG_FILES=`cd $LOGFOLDER;find . -maxdepth 1 -type f -regex $LOGFILEPATTERN -mmin -$BACKLOGINITIAL`
    if [[ $LOG_FILES == "" ]];then
       LOGS_TO_PARSE=""
    else
@@ -70,10 +76,9 @@ echo -e "\n$(date)\nLog timestamp:  $dateFromLog Check DB for $gcmToken and $ser
           msisdnX=${msisdn_devId[$n]}
           devIdX=${msisdn_devId[$n+1]}
           isNotJanski=`notJanski $devIdX]}`
-echo -e "\n...$msisdnX is not Jansky: $isNotJanski" >> $APPLOGFOLDER/scriptGCMLogs_${DATE}.log
+echo -e "\n...$msisdnX is not Janski: $isNotJanski" >> $APPLOGFOLDER/scriptGCMLogs_${DATE}.log
           if [[ $isNotJanski == 'true' ]]
           then
-
 ##########################################
 # Not Janski: before deleting, proceed to query DB based on MSISDN and Service (and DevId)
 # and check that all DB timestamps are older than log the log timestamp before deleting
@@ -116,4 +121,10 @@ echo "......$timeStampX - $dateEpocLog = $age stale, calling CC delete"  >> $APP
   echo ${logfile:2} > $LAST_LOG_PROCESSED_GCM
 done
 
+if [[ -f runningFirstGCM ]]; then
+   rm -f runningFirstGCM
+   echo `date`" InitialGCM Execution Completed" >> $APPLOGFOLDER/scriptGCMLogs_${DATE}.log
+else
+   echo `date`" Crontab GCM channel Execution Completed" >> $APPLOGFOLDER/scriptGCMLogs_${DATE}.log   
+fi
 exit
