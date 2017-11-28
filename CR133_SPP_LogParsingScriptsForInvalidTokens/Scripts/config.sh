@@ -17,7 +17,7 @@ TOKEN_SERVICE_GCM="/*[self::E1030 or self::E218]"
 TIMESTAMP_GCM="/*[self::E74]"
 # The max time the CURL request for deletion waits for an answer (sec):
 CURL_TIMEOUT=3
-CC_ENDPOINT="http://odp4care2lab1.msg.lab.t-mobile.com/ses/customercare/v2/services"
+CC_ENDPOINT="http://10.174.79.68:8081/ses/customercare/v2/services"
 CC_USER="customercare"
 CC_PASSWORD="ccpwd"
 CC_ADDINFO="App+Uninstall"
@@ -26,7 +26,7 @@ LAST_LOG_PROCESSED="/opt/ericsson/CR133/last_log_processed"
 LAST_LOG_PROCESSED_GCM="/opt/ericsson/CR133/last_log_processed_GCM"
 
 JANKSY_TAC_LIST=".*|^35935806$|^35774606$|^35946206$|^35936206$|^35936106$|^35946406$|^35936406$|^35936306$|^35946506$|^35914606$|^35773006$|^35971506$|^35911606$|^35971706$|^35971806$|^35971906$|^35972006$|^35972106$|^35375307$|^35256707$|^35375407$|^35375207$|^35775207$|^35591607$|^35975507$|^35975407$|^35721907$|^35616407$|^35775107$|^35501808$|^35598708$|^35775408$|^35775308$|^35598008$|^35775808$|^35775908$|^35561908$|^35375607$|^35375707$|^35255707$|^35403407$|^35403507$|^35600007$|^35672907$|^35882907$"
-NATIVE_IOS_DEVID="^[\d]*$"
+NATIVE_IOS_DEVID="^[0-9]*$"
 
 # Services black list: do not send CC Delete nor Delete Push Token
 SERVICES_BL="^vvm$|^genp$|^multi-sim$"
@@ -36,9 +36,9 @@ CALL_CC_DELETE_VOWIFI="^vowifi$|^voip$|^voipstg$|^newvowifi$"
 # Services list for bypassing delete push token (SPP API)
 NOCALL_DELETE_PUSH_TOKEN="^vowifi$"
 
-DPT_ENDPOINT="http://odp4care2lab1.msg.lab.t-mobile.com/spp/token/v2"
-DPT_USER="ses"
-DPT_PASSWORD="ses01"
+DPT_ENDPOINT="http://10.174.79.98:8084/spp/token/v2"
+DPT_USER="username1"
+DPT_PASSWORD="password1"
 
 DATE=`date +%Y-%m-%d`
 APPLOGFOLDER="./logs"

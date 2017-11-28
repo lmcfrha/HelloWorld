@@ -79,10 +79,11 @@ echo -e "\n$(date)\nLog timestamp:  $dateFromLog Check DB for $apnsToken and $se
 # Ignore if Janski
             msisdnX=${msisdn_devId[$n]}
             devIdX=${msisdn_devId[$n+1]}
-            isNativeIOS=`nativeIOS $devIdx`
+            isNativeIOS=`nativeIOS $devIdX`
             isNotJanski=`notJanski $devIdX`
-echo -e "\n...$msisdnX is not Janski: $isNotJanski" >> $APPLOGFOLDER/scriptLogs_${DATE}.log
-            if [[ $isNotJanski == 'true' || $isNativeIOS == "false" ]]
+echo -e "\n...$msisdnX $devIdX is not Janski: $isNotJanski" >> $APPLOGFOLDER/scriptLogs_${DATE}.log
+echo -e "...$msisdnX $devIdX is Native IOS: $isNativeIOS" >> $APPLOGFOLDER/scriptLogs_${DATE}.log
+            if [[ $isNotJanski == 'true' && $isNativeIOS == 'false' ]]
             then
 ##########################################
 # Not Janski: before deleting, proceed to query DB based on MSISDN and Service (and DevId)
