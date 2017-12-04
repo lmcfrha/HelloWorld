@@ -36,7 +36,7 @@ CALL_CC_DELETE_VOWIFI="^vowifi$|^voip$|^voipstg$|^newvowifi$"
 # Services list for bypassing delete push token (SPP API)
 NOCALL_DELETE_PUSH_TOKEN="^vowifi$"
 
-DPT_ENDPOINT="http://10.174.79.98:8084/spp/token/v2"
+DPT_ENDPOINT="http://`hostname`:8084/spp/token/v2"
 DPT_USER="username1"
 DPT_PASSWORD="password1"
 
