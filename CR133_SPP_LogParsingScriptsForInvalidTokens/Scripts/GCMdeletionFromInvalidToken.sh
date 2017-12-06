@@ -118,16 +118,21 @@ echo "......$timeStampX - $dateEpocLog = $age stale, calling CC delete"  >> $APP
                      curl -i -X DELETE -H Accept:application/json -H Content-Type:application/json -u $CC_USER:$CC_PASSWORD "$CC_ENDPOINT?msisdn=$msisdnX&deviceId=$devIdX&serviceNames=vowifi&additionalInfo=$CC_ADDINFO"
                      echo  $gcmToken $service $msisdnX $devIdX " NotJanski, Not NativeIOS Stale" $curlCmd >> $APPLOGFOLDER/PARSED_GCM_${logfile:2}
                   fi
-		  if [[ ! ($service =~ $NOCALL_DELETE_PUSH_TOKEN) ]]; then
+		          if [[ ! ($service =~ $NOCALL_DELETE_PUSH_TOKEN) ]]; then
 echo "......calling Delete Push Token"  >> $APPLOGFOLDER/scriptGCMLogs_${DATE}.log
-                     curlCmd="curl -i -X DELETE -H Content-Type:application/json -H x-requestor-name:mts -u $DPT_USER:$DPT_PASSWORD '$DPT_ENDPOINT?msisdn=$msisdnX&device-id=$devIdX&service-name=$service'"
-                     curl -i -X DELETE -H Content-Type:application/json -H x-requestor-name:mts -u $DPT_USER:$DPT_PASSWORD "$DPT_ENDPOINT?msisdn=$msisdnX&device-id=$devIdX&service-name=$service"
-                     echo  $gcmToken $service $msisdnX $devIdX " NotJanski, Not NativeIOS Stale" $curlCmd >> $APPLOGFOLDER/PARSED_GCM_${logfile:2}                     
-#curl -v -X DELETE -H 'Content-Type: application/json' -H 'x-requestor-name: mts' -u ses:ses01 "http://$myIP:8084/spp/token/v2?imsi={$myimsi}&msisdn={$mymsisdn}&device-id={$mydevid}&service-name={vowifi,vowifistg,voipstg,voipstg,voip,newvowifi}"
-		  fi
-		 else
+                    if [[ $service =~ $CONN_SERVICES ]]; then
+                      curlCmd="curl -i -X DELETE -H Content-Type:application/json -H x-requestor-name:mts -u $DPT_USER:$DPT_PASSWORD '$DPT_ENDPOINT?device-id=$devIdX&service-name=$service'"
+                      curl -i -X DELETE -H Content-Type:application/json -H x-requestor-name:mts -u $DPT_USER:$DPT_PASSWORD "$DPT_ENDPOINT?device-id=$devIdX&service-name=$service"
+                      echo  $gcmToken $service $msisdnX $devIdX " NotJanski, Not NativeIOS Stale" $curlCmd >> $APPLOGFOLDER/PARSED_GCM_${logfile:2}                     
+                    else
+                      curlCmd="curl -i -X DELETE -H Content-Type:application/json -H x-requestor-name:mts -u $DPT_USER:$DPT_PASSWORD '$DPT_ENDPOINT?msisdn=$msisdnX&device-id=$devIdX&service-name=$service'"
+                      curl -i -X DELETE -H Content-Type:application/json -H x-requestor-name:mts -u $DPT_USER:$DPT_PASSWORD "$DPT_ENDPOINT?msisdn=$msisdnX&device-id=$devIdX&service-name=$service"
+                      echo  $gcmToken $service $msisdnX $devIdX " NotJanski, Not NativeIOS Stale" $curlCmd >> $APPLOGFOLDER/PARSED_GCM_${logfile:2}
+                    fi
+		          fi
+		        else
                     echo  $gcmToken $service $msisdnX $devIdX " NotJanski, Not NativeIOS. NotStale"  >> $APPLOGFOLDER/PARSED_GCM_${logfile:2}
-                 fi
+                fi
              else
                 echo  $gcmToken $service $msisdnX $devIdX "Janski or NativeIOS" >> $APPLOGFOLDER/PARSED_GCM_${logfile:2}
              fi

@@ -17,7 +17,7 @@ TOKEN_SERVICE_GCM="/*[self::E1030 or self::E218]"
 TIMESTAMP_GCM="/*[self::E74]"
 # The max time the CURL request for deletion waits for an answer (sec):
 CURL_TIMEOUT=3
-CC_ENDPOINT="http://10.174.79.68:8081/ses/customercare/v2/services"
+CC_ENDPOINT="http://odp4care2.msg.eng.t-mobile.com:8080/ses/customercare/v2/services"
 CC_USER="customercare"
 CC_PASSWORD="ccpwd"
 CC_ADDINFO="App+Uninstall"
@@ -30,15 +30,16 @@ NATIVE_IOS_DEVID="^[0-9]*$"
 
 # Services black list: do not send CC Delete nor Delete Push Token
 SERVICES_BL="^vvm$|^genp$|^multi-sim$"
-
+# For connection type services, do not use the MSISDN in the Delete Push Token request
+CONN_SERVICES="*conn*"
 # Services list for CC delete vowifi (SES API)
 CALL_CC_DELETE_VOWIFI="^vowifi$|^voip$|^voipstg$|^newvowifi$"
 # Services list for bypassing delete push token (SPP API)
 NOCALL_DELETE_PUSH_TOKEN="^vowifi$"
 
-DPT_ENDPOINT="http://`hostname`:8084/spp/token/v2"
-DPT_USER="username1"
-DPT_PASSWORD="password1"
+DPT_ENDPOINT="http://`hostname`-traffic1:8084/spp/token/v2"
+DPT_USER="ses"
+DPT_PASSWORD="ses01"
 
 DATE=`date +%Y-%m-%d`
 APPLOGFOLDER="./logs"
