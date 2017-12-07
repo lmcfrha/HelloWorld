@@ -31,7 +31,7 @@ NATIVE_IOS_DEVID="^[0-9]*$"
 # Services black list: do not send CC Delete nor Delete Push Token
 SERVICES_BL="^vvm$|^genp$|^multi-sim$"
 # For connection type services, do not use the MSISDN in the Delete Push Token request
-CONN_SERVICES="*conn*"
+CONN_SERVICES=".*conn.*"
 # Services list for CC delete vowifi (SES API)
 CALL_CC_DELETE_VOWIFI="^vowifi$|^voip$|^voipstg$|^newvowifi$"
 # Services list for bypassing delete push token (SPP API)
