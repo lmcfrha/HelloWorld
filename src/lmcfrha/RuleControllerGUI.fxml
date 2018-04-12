@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="lmcfrha.RuleController">
+   <top>
+      <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+        <items>
+          <Button fx:id="file" mnemonicParsing="false" onMouseClicked="#loadFile" text="File" />
+            <Button fx:id="create" disable="true" mnemonicParsing="false" text="Create" />
+            <Button fx:id="read" disable="true" mnemonicParsing="false" text="Read" />
+            <Button fx:id="update" disable="true" mnemonicParsing="false" text="Update" />
+            <Button fx:id="delete" disable="true" mnemonicParsing="false" text="Delete" />
+        </items>
+      </ToolBar>
+   </top>
+   <center>
+      <TreeView fx:id="tree" editable="true" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
+   </center>
+</BorderPane>
