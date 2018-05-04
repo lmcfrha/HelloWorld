@@ -9,13 +9,8 @@ import java.util.Iterator;
 
 public class XMLTreeItemGen {
 
-TreeItem<XmlElement> genTree(org.dom4j.Document doc) {
-    XmlElement root;
-    root = new XmlElement(doc.getRootElement());
-    TreeItem<XmlElement> rootXmlElement=new TreeItem<>(root);
-    buildTree(rootXmlElement);
-    return rootXmlElement;
-    }
+
+
     static void buildTree(TreeItem<XmlElement> docXmlElement) {
         Element e = docXmlElement.getValue().getE();
         /* Get the children elements, turn them into XmlElements

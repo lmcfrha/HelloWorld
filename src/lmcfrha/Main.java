@@ -11,8 +11,8 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("RuleControllerGUI.fxml"));
-        primaryStage.setTitle("XML Manager");
-        primaryStage.setScene(new Scene(root, 300, 275));
+        primaryStage.setTitle("Yada yada editor");
+        primaryStage.setScene(new Scene(root, 900, 800));
         primaryStage.show();
     }
 

@@ -1,7 +1,11 @@
 package lmcfrha;
 
 
+import org.dom4j.Attribute;
 import org.dom4j.Element;
+
+import java.util.Iterator;
+
 /* Wrapping for Element so the toString can
    be overridden and the tree view displays the
    element's tags (otherwise you get the Object's toString,
@@ -16,9 +20,22 @@ public class XmlElement {
 
     @Override
     public String toString() {
-        return getE().getName();
-    }
+        StringBuilder entry= new StringBuilder();
+        entry.append(getE().getName());
+        Iterator<Attribute> itr = getE().attributeIterator();
+        while (itr.hasNext()) {
+            Attribute at = itr.next();
+            entry.append(" ");
+            entry.append(at.getName());
+            entry.append("=");
+            entry.append(at.getValue());
+        }
 
+        return entry.toString();
+    }
+    public String toStringFull() {
+        return getE().asXML();
+    }
     public Element getE() {
         return e;
     }
