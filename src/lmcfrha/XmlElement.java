@@ -3,18 +3,20 @@ package lmcfrha;
 
 import org.dom4j.Attribute;
 import org.dom4j.Element;
+import org.dom4j.dom.DOMElement;
 
 import java.util.Iterator;
 
 /* Wrapping for Element so the toString can
    be overridden and the tree view displays the
-   element's tags (otherwise you get the Object's toString,
-   not too nice
+   element's tags and attributes(otherwise you get the
+   Object's toString, not too nice)
+   Also has the toStringFull to show the element's content too
  */
 public class XmlElement {
-    private Element e;
+    private DOMElement e;
 
-    XmlElement(Element e) {
+    XmlElement(DOMElement e) {
         this.setE(e);
     }
 
@@ -30,17 +32,16 @@ public class XmlElement {
             entry.append("=");
             entry.append(at.getValue());
         }
-
         return entry.toString();
     }
     public String toStringFull() {
         return getE().asXML();
     }
-    public Element getE() {
+    public DOMElement getE() {
         return e;
     }
 
-    public void setE(Element e) {
+    public void setE(DOMElement e) {
         this.e = e;
     }
 }

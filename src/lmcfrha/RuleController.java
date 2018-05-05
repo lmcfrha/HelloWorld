@@ -3,36 +3,33 @@ package lmcfrha;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Callback;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
+import org.dom4j.*;
+import org.dom4j.dom.DOMDocument;
+import org.dom4j.dom.DOMDocumentFactory;
+import org.dom4j.dom.DOMElement;
 import org.dom4j.io.SAXReader;
 import org.dom4j.tree.DefaultElement;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
+import java.io.StringReader;
+
 
 public class RuleController {
 
 
-    SAXReader reader = new SAXReader();
-    Document doc = null;
+    private SAXReader reader = new SAXReader(DOMDocumentFactory.getInstance());
+    private DOMDocument doc = null;
 
 
 
@@ -49,57 +46,18 @@ public class RuleController {
     @FXML
     private Button deleteButton;
 
-    void prepare(TreeView tree) {
-//        tree.setEditable(true);
-        // Set the customized cell factory producing the XmlElementTreeCellImpl
-        tree.setCellFactory(new Callback<TreeView<XmlElement>,TreeCell<XmlElement>>(){
-            @Override
-            public TreeCell<XmlElement> call(TreeView<XmlElement> p) {
-                return new XmlElementTreeCellImpl();
-            }
-        });
-        // Get the element editor pane to display the currently element selected
-        tree.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
-            @Override
-            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
-                TreeItem<XmlElement> selectedItem = (TreeItem<XmlElement>) newValue;
-                elementEditor.setText(selectedItem.getValue().toStringFull());
-                addButton.setDisable(true);
-                saveButton.setDisable(true);
-                deleteButton.setDisable(true);
-
-            }
-        });
-    }
 
     public RuleController() throws ParserConfigurationException {
     }
 
     @FXML
     public void loadFile() throws IOException, SAXException {
-
-
-        JAXBContext jc = null;
-        try {
-            jc = JAXBContext.newInstance("cac");
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
-        Unmarshaller u = null;
-        try {
-            u = jc.createUnmarshaller();
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
-
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open XML File");
         File f = fileChooser.showOpenDialog(vBox.getScene().getWindow());
-
-        /*            Object o = u.unmarshal(f);  */
         try {
-            doc = reader.read(f);
-            XmlElement root = new XmlElement(doc.getRootElement());
+            doc = (DOMDocument) reader.read(f);
+            XmlElement root = new XmlElement((DOMElement) doc.getRootElement());
             TreeItem<XmlElement> rootXmlElement = new TreeItem<>(root);
             XMLTreeItemGen.buildTree(rootXmlElement);
             tree.setRoot(rootXmlElement);
@@ -108,42 +66,83 @@ public class RuleController {
             e.printStackTrace();
         }
     }
+
     @FXML
     private void textAreaClicked() {
         addButton.setDisable(false);
         saveButton.setDisable(false);
         deleteButton.setDisable(false);
     }
+
     @FXML
     private void saveClicked() {
         if (saveButton.isDisabled()) return;
-        elementEditor.setText("pushed when enabled");
+        // Transform the text in the editor pane to a Document, then a TreeItem
+        TreeItem<XmlElement> selectedItem = (TreeItem<XmlElement>) tree.getSelectionModel().getSelectedItem();
+        // Get the XPath starting from the tree root
+        String elementXPath = getXPathFromRoot(selectedItem, "");
+        // Replace the node in the root element with the new one saved from the text edit pane
+        DOMElement root = ((TreeItem<XmlElement>) tree.getRoot()).getValue().getE();
+        DOMElement oldElement = (DOMElement) root.selectSingleNode(elementXPath);
+        DOMElement newElement = textToXml(elementEditor.getText()).getE();
+        DOMElement parentElement = (DOMElement) oldElement.getParentNode();
+        parentElement.replaceChild(newElement,oldElement);
+        // Prepare the new root Item from the new root element
+        XmlElement newRoot = new XmlElement(root);
+        TreeItem<XmlElement> newRootItem = new TreeItem<>(newRoot);
+        newRootItem.setExpanded(true);
+        // Rebuild the tree from the new root item and make it the tree root.
+        XMLTreeItemGen.buildTree(newRootItem);
+        tree.setRoot(newRootItem);
     }
+
     @FXML
     private void addClicked() {
-        if (saveButton.isDisabled()) return;
+        if (addButton.isDisabled()) return;
         TreeItem<XmlElement> selectedItem = (TreeItem<XmlElement>) tree.getSelectionModel().getSelectedItem();
-        selectedItem.getParent().getChildren().removeAll(selectedItem);
+        // Get the XPath starting from the tree root
+        String elementXPath = getXPathFromRoot(selectedItem, "");
+        // Insert the new node from the text edit pane in the root element, before the old one
+        DOMElement root = ((TreeItem<XmlElement>) tree.getRoot()).getValue().getE();
+        DOMElement oldElement = (DOMElement) root.selectSingleNode(elementXPath);
+        DOMElement newElement = textToXml(elementEditor.getText()).getE();
+        DOMElement parentElement = (DOMElement) oldElement.getParentNode();
+        parentElement.insertBefore(newElement,oldElement);
+        // Prepare the new root Item from the new root element
+        XmlElement newRoot = new XmlElement(root);
+        TreeItem<XmlElement> newRootItem = new TreeItem<>(newRoot);
+        newRootItem.setExpanded(true);
+        // Rebuild the tree from the new root item and make it the tree root.
+        XMLTreeItemGen.buildTree(newRootItem);
+        tree.setRoot(newRootItem);
+
     }
+
     @FXML
     private void deleteClicked() {
-        if (saveButton.isDisabled()) return;
+        if (deleteButton.isDisabled()) return;
         TreeItem<XmlElement> selectedItem = (TreeItem<XmlElement>) tree.getSelectionModel().getSelectedItem();
-        selectedItem.getParent().getChildren().removeAll(selectedItem);
+        // Get the XPath starting from the tree root
+        String elementXPath = getXPathFromRoot(selectedItem, "");
+        // Replace the node in the root element with the new one saved from the text edit pane
+        DOMElement root = ((TreeItem<XmlElement>) tree.getRoot()).getValue().getE();
+        DOMElement toDelete = (DOMElement) root.selectSingleNode(elementXPath);
+        toDelete.detach();
+        // Prepare the new root Item from the new root element
+        XmlElement newRoot = new XmlElement(root);
+        TreeItem<XmlElement> newRootItem = new TreeItem<>(newRoot);
+        newRootItem.setExpanded(true);
+        // Rebuild the tree from the new root item and make it the tree root.
+        XMLTreeItemGen.buildTree(newRootItem);
+        tree.setRoot(newRootItem);
+        elementEditor.clear();
     }
 
-    @FXML
-    private void displayElement(MouseEvent event) {
-
-           int i=0;
-    }
     private class XmlElementTreeCellImpl extends TreeCell<XmlElement> {
 
         private TextField textField;
 
         public XmlElementTreeCellImpl() {
-//            setOnMouseClicked(evt -> elementEditor.setText(getItem().toStringFull()));
-
         }
 
         @Override
@@ -195,7 +194,7 @@ public class RuleController {
                 @Override
                 public void handle(KeyEvent t) {
                     if (t.getCode() == KeyCode.ENTER) {
-                        commitEdit(new XmlElement(new DefaultElement("Zory")));
+                        commitEdit(new XmlElement(new DOMElement("Zory")));
                     } else if (t.getCode() == KeyCode.ESCAPE) {
                         cancelEdit();
                     }
@@ -208,4 +207,68 @@ public class RuleController {
         }
     }
 
+    private void prepare(TreeView tree) {
+//        tree.setEditable(true);
+        // Set the customized cell factory producing the XmlElementTreeCellImpl
+        tree.setCellFactory(new Callback<TreeView<XmlElement>,TreeCell<XmlElement>>(){
+            @Override
+            public TreeCell<XmlElement> call(TreeView<XmlElement> p) {
+                return new XmlElementTreeCellImpl();
+            }
+        });
+        // Get the element editor pane to display the currently element selected
+        tree.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                TreeItem<XmlElement> selectedItem = (TreeItem<XmlElement>) newValue;
+                if (newValue != null) elementEditor.setText(selectedItem.getValue().toStringFull());
+                addButton.setDisable(true);
+                saveButton.setDisable(true);
+                deleteButton.setDisable(true);
+
+            }
+        });
+    }
+    private XmlElement textToXml(String text) {
+
+        StringReader newTextReader = new StringReader(text);
+        InputSource input = new InputSource(newTextReader);
+        SAXReader reader = new SAXReader(DOMDocumentFactory.getInstance());
+        DOMDocument changedItem = null;
+        try {
+            changedItem = (DOMDocument) reader.read(input);
+        } catch (DocumentException e) {
+            e.printStackTrace();
+        }
+
+        return (new XmlElement((DOMElement) changedItem.getRootElement()));
+
+    }
+    private String getXPathFromRoot(TreeItem<XmlElement> treeItem, String trailingPath) {
+        StringBuilder node = new StringBuilder("/");
+        node.append(treeItem.getValue().getE().getName());
+        Integer index= new Integer(0);
+        int psibling=0;
+        int nsibling=0;
+        TreeItem<XmlElement> sibling = treeItem.previousSibling();
+        while (sibling != null) {
+            psibling++;
+            sibling = sibling.previousSibling();
+        }
+        sibling = treeItem.nextSibling();
+        while (sibling != null) {
+            nsibling++;
+            sibling = sibling.nextSibling();
+        }
+        if (psibling != 0) {
+            node.append("[");
+            node.append(++psibling);
+            node.append("]");
+        }
+        else if (psibling == 0 && nsibling !=0) {
+            node.append("[1]");
+        }
+        if (treeItem.getParent() == null) return node.append(trailingPath).toString();
+        else return getXPathFromRoot(treeItem.getParent(),node.append(trailingPath).toString());
+    }
 }
