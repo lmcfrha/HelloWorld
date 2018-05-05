@@ -15,12 +15,15 @@ import org.dom4j.*;
 import org.dom4j.dom.DOMDocument;
 import org.dom4j.dom.DOMDocumentFactory;
 import org.dom4j.dom.DOMElement;
+import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
+import org.dom4j.io.XMLWriter;
 import org.dom4j.tree.DefaultElement;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 
@@ -30,6 +33,7 @@ public class RuleController {
 
     private SAXReader reader = new SAXReader(DOMDocumentFactory.getInstance());
     private DOMDocument doc = null;
+    private File f = null;
 
 
 
@@ -54,7 +58,7 @@ public class RuleController {
     public void loadFile() throws IOException, SAXException {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open XML File");
-        File f = fileChooser.showOpenDialog(vBox.getScene().getWindow());
+        f = fileChooser.showOpenDialog(vBox.getScene().getWindow());
         try {
             doc = (DOMDocument) reader.read(f);
             XmlElement root = new XmlElement((DOMElement) doc.getRootElement());
@@ -65,6 +69,43 @@ public class RuleController {
         } catch (DocumentException e) {
             e.printStackTrace();
         }
+    }
+
+    @FXML
+    public void saveAs() throws IOException, SAXException {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save XML File");
+        File f = fileChooser.showSaveDialog(vBox.getScene().getWindow());
+        // Create a file named as person.xml
+        FileOutputStream fos = new FileOutputStream(f);
+        // Create the pretty print of xml document.
+        OutputFormat format = OutputFormat.createPrettyPrint();
+        // Create the xml writer by passing outputstream and format
+        XMLWriter writer = new XMLWriter(fos, format);
+        // Write to the xml document
+        writer.write((((TreeItem<XmlElement>) tree.getRoot()).getValue().getE()));
+        // Flush after done
+        writer.flush();
+
+    }
+
+    @FXML
+    public void save() throws IOException, SAXException {
+        FileOutputStream fos = new FileOutputStream(f);
+        // Create the pretty print of xml document.
+        OutputFormat format = OutputFormat.createPrettyPrint();
+        // Create the xml writer by passing outputstream and format
+        XMLWriter writer = new XMLWriter(fos, format);
+        // Write to the xml document
+        writer.write((((TreeItem<XmlElement>) tree.getRoot()).getValue().getE()));
+        // Flush after done
+        writer.flush();
+    }
+
+
+    @FXML
+    public void close() throws IOException, SAXException {
+        System.exit(0);
     }
 
     @FXML
