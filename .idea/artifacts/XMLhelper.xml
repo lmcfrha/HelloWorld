@@ -1,0 +1,21 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="XMLhelper">
+    <output-path>$PROJECT_DIR$/out/artifacts/XMLhelper</output-path>
+    <properties id="javafx-properties">
+      <options>
+        <option name="appClass" value="lmcfrha.Main" />
+        <option name="description" value="A small GUI to help XML updates on XML files." />
+        <option name="htmlPlaceholderId" value="" />
+        <option name="title" value="XMLhelper" />
+        <option name="vendor" value="lmcfrha" />
+        <option name="version" value="" />
+      </options>
+    </properties>
+    <root id="root">
+      <element id="archive" name="XMLhelper.jar">
+        <element id="module-output" name="XMLhelper" />
+        <element id="library" level="project" name="dom4j-2.1.0" />
+      </element>
+    </root>
+  </artifact>
+</component>

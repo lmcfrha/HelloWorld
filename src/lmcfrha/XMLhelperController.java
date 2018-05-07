@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.io.StringReader;
 
 
-public class RuleController {
+public class XMLhelperController {
 
 
     private SAXReader reader = new SAXReader(DOMDocumentFactory.getInstance());
@@ -50,7 +50,7 @@ public class RuleController {
     private Button deleteButton;
 
 
-    public RuleController() throws ParserConfigurationException {
+    public XMLhelperController() throws ParserConfigurationException {
     }
 
     @FXML
@@ -131,9 +131,13 @@ public class RuleController {
         DOMElement oldElement = (DOMElement) root.selectSingleNode(elementXPath);
         DOMElement newElement = textToXml(elementEditor.getText()).getE();
         DOMElement parentElement = (DOMElement) oldElement.getParentNode();
-        parentElement.replaceChild(newElement,oldElement);
         // Prepare the new root Item from the new root element
-        XmlElement newRoot = new XmlElement(root);
+        XmlElement newRoot;
+        if (parentElement != null) {
+            parentElement.replaceChild(newElement,oldElement);
+            newRoot = new XmlElement(root);
+        } else newRoot = new XmlElement(newElement);
+        // Prepare the new root Item from the new root element
         TreeItem<XmlElement> newRootItem = new TreeItem<>(newRoot);
         //newRootItem.setExpanded(true);
         // Rebuild the tree from the new root item and make it the tree root.
