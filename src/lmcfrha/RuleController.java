@@ -158,8 +158,9 @@ public class RuleController {
         TreeItem<XmlElement> newRootItem = new TreeItem<>(newRoot);
         newRootItem.setExpanded(true);
         // Rebuild the tree from the new root item and make it the tree root.
-        XMLTreeItemGen.buildTree(newRootItem);
+        TreeItem<XmlElement> toSelect = XMLTreeItemGen.buildTree(newRootItem,newElement);
         tree.setRoot(newRootItem);
+        if (toSelect != null) tree.getSelectionModel().select(toSelect);
 
     }
 

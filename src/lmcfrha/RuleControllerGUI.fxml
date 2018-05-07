@@ -21,7 +21,7 @@
           <items>
             <MenuItem disable="true" mnemonicParsing="false" text="New" />
             <MenuItem mnemonicParsing="false" onAction="#loadFile" text="Open…" />
-            <Menu mnemonicParsing="false" text="Open Recent" />
+            <Menu disable="true" mnemonicParsing="false" text="Open Recent" />
             <SeparatorMenuItem mnemonicParsing="false" />
             <MenuItem mnemonicParsing="false" onAction="#close" text="Close" />
             <MenuItem mnemonicParsing="false" onAction="#save" text="Save" />
@@ -33,7 +33,7 @@
             <MenuItem disable="true" mnemonicParsing="false" text="Quit" />
           </items>
         </Menu>
-        <Menu mnemonicParsing="false" text="Edit">
+        <Menu disable="true" mnemonicParsing="false" text="Edit">
           <items>
             <MenuItem mnemonicParsing="false" text="Undo" />
             <MenuItem mnemonicParsing="false" text="Redo" />
@@ -47,7 +47,7 @@
             <MenuItem mnemonicParsing="false" text="Unselect All" />
           </items>
         </Menu>
-        <Menu mnemonicParsing="false" text="Help">
+        <Menu disable="true" mnemonicParsing="false" text="Help">
           <items>
             <MenuItem mnemonicParsing="false" text="About MyHelloApp" />
           </items>
