@@ -33,9 +33,8 @@ public class RuleController {
 
     private SAXReader reader = new SAXReader(DOMDocumentFactory.getInstance());
     private DOMDocument doc = null;
+    private String xmlVersion, xmlEncoding, xmlStandalone;
     private File f = null;
-
-
 
     @FXML
     public VBox vBox;
@@ -83,7 +82,10 @@ public class RuleController {
         // Create the xml writer by passing outputstream and format
         XMLWriter writer = new XMLWriter(fos, format);
         // Write to the xml document
-        writer.write((((TreeItem<XmlElement>) tree.getRoot()).getValue().getE()));
+        //doc.getRootElement().detach();
+        doc.setRootElement(((TreeItem<XmlElement>) tree.getRoot()).getValue().getE());
+        writer.write(doc);
+        //writer.write((((TreeItem<XmlElement>) tree.getRoot()).getValue().getE()));
         // Flush after done
         writer.flush();
 
@@ -97,7 +99,9 @@ public class RuleController {
         // Create the xml writer by passing outputstream and format
         XMLWriter writer = new XMLWriter(fos, format);
         // Write to the xml document
-        writer.write((((TreeItem<XmlElement>) tree.getRoot()).getValue().getE()));
+        doc.setRootElement(((TreeItem<XmlElement>) tree.getRoot()).getValue().getE());
+        writer.write(doc);
+        //writer.write((((TreeItem<XmlElement>) tree.getRoot()).getValue().getE()));
         // Flush after done
         writer.flush();
     }
