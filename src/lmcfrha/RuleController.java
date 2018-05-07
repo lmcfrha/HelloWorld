@@ -62,7 +62,7 @@ public class RuleController {
             doc = (DOMDocument) reader.read(f);
             XmlElement root = new XmlElement((DOMElement) doc.getRootElement());
             TreeItem<XmlElement> rootXmlElement = new TreeItem<>(root);
-            XMLTreeItemGen.buildTree(rootXmlElement);
+            XMLTreeItemGen.buildTree(rootXmlElement, false);
             tree.setRoot(rootXmlElement);
             prepare(tree);
         } catch (DocumentException e) {
@@ -135,10 +135,12 @@ public class RuleController {
         // Prepare the new root Item from the new root element
         XmlElement newRoot = new XmlElement(root);
         TreeItem<XmlElement> newRootItem = new TreeItem<>(newRoot);
-        newRootItem.setExpanded(true);
+        //newRootItem.setExpanded(true);
         // Rebuild the tree from the new root item and make it the tree root.
-        XMLTreeItemGen.buildTree(newRootItem);
+        TreeItem<XmlElement> toSelect = XMLTreeItemGen.buildTree(newRootItem,newElement, false);
         tree.setRoot(newRootItem);
+        if (toSelect != null) tree.getSelectionModel().select(toSelect);
+
     }
 
     @FXML
@@ -156,9 +158,9 @@ public class RuleController {
         // Prepare the new root Item from the new root element
         XmlElement newRoot = new XmlElement(root);
         TreeItem<XmlElement> newRootItem = new TreeItem<>(newRoot);
-        newRootItem.setExpanded(true);
+        //newRootItem.setExpanded(true);
         // Rebuild the tree from the new root item and make it the tree root.
-        TreeItem<XmlElement> toSelect = XMLTreeItemGen.buildTree(newRootItem,newElement);
+        TreeItem<XmlElement> toSelect = XMLTreeItemGen.buildTree(newRootItem,newElement, false);
         tree.setRoot(newRootItem);
         if (toSelect != null) tree.getSelectionModel().select(toSelect);
 
@@ -173,15 +175,18 @@ public class RuleController {
         // Replace the node in the root element with the new one saved from the text edit pane
         DOMElement root = ((TreeItem<XmlElement>) tree.getRoot()).getValue().getE();
         DOMElement toDelete = (DOMElement) root.selectSingleNode(elementXPath);
+        DOMElement parent = (DOMElement) toDelete.getParent();
         toDelete.detach();
         // Prepare the new root Item from the new root element
         XmlElement newRoot = new XmlElement(root);
         TreeItem<XmlElement> newRootItem = new TreeItem<>(newRoot);
-        newRootItem.setExpanded(true);
+        //newRootItem.setExpanded(true);
         // Rebuild the tree from the new root item and make it the tree root.
-        XMLTreeItemGen.buildTree(newRootItem);
+        TreeItem<XmlElement> toSelect = XMLTreeItemGen.buildTree(newRootItem,parent, false);
         tree.setRoot(newRootItem);
-        elementEditor.clear();
+        if (toSelect != null) tree.getSelectionModel().select(toSelect);
+        toSelect.setExpanded(true);
+        //elementEditor.clear();
     }
 
     private class XmlElementTreeCellImpl extends TreeCell<XmlElement> {

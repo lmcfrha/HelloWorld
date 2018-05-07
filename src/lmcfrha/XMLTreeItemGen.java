@@ -13,7 +13,7 @@ public class XMLTreeItemGen {
 
 
 
-    static void buildTree(TreeItem<XmlElement> docXmlElement) {
+    static void buildTree(TreeItem<XmlElement> docXmlElement, boolean expand) {
         // Get current root element and rebuild from there.
         DOMElement e = docXmlElement.getValue().getE();
         /* Get the children elements, turn them into XmlElements
@@ -22,13 +22,13 @@ public class XMLTreeItemGen {
         for (Iterator<Element> it = e.elementIterator(); it.hasNext();) {
             DOMElement element = (DOMElement) it.next();
             TreeItem<XmlElement> child=new TreeItem<>(new XmlElement(element));
-            child.setExpanded(true);
+            if (expand) child.setExpanded(true);
             docXmlElement.getChildren().add(child);
-            buildTree(child);
+            buildTree(child, expand);
         }
     }
 
-    static TreeItem<XmlElement> buildTree(TreeItem<XmlElement> docXmlElement, DOMElement toSelect) {
+    static TreeItem<XmlElement> buildTree(TreeItem<XmlElement> docXmlElement, DOMElement toSelect, boolean expand) {
         NodeComparator comparator = new NodeComparator();
         TreeItem<XmlElement> selected = null;
 
@@ -43,10 +43,10 @@ public class XMLTreeItemGen {
             DOMElement element = (DOMElement) it.next();
             TreeItem<XmlElement> child=new TreeItem<>(new XmlElement(element));
             if (comparator.compare(element,toSelect) == 0) selected = child;
-            child.setExpanded(true);
+            if (expand) child.setExpanded(true);
             docXmlElement.getChildren().add(child);
-            if (selected != null) buildTree(child);
-            else selected = buildTree(child, toSelect);
+            if (selected != null) buildTree(child, expand);
+            else selected = buildTree(child, toSelect, expand);
         }
         return selected;
     }
