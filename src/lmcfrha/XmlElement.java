@@ -4,7 +4,12 @@ package lmcfrha;
 import org.dom4j.Attribute;
 import org.dom4j.Element;
 import org.dom4j.dom.DOMElement;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.XMLWriter;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Iterator;
 
 /* Wrapping for Element so the toString can
@@ -35,7 +40,24 @@ public class XmlElement {
         return entry.toString();
     }
     public String toStringFull() {
-        return getE().asXML();
+        //return getE().asXML();
+        // Stringwriter to collect the properly formatted XML element
+        StringWriter stringwriter = new StringWriter();
+        // Create the pretty print of xml document.
+        OutputFormat format = OutputFormat.createPrettyPrint();
+        // Create the xml writer by passing outputstream and format
+        XMLWriter writer = new XMLWriter(stringwriter, format);
+        try {
+            writer.write(getE());
+            writer.flush();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        return stringwriter.toString();
+
+
+
+
     }
     public DOMElement getE() {
         return e;
