@@ -144,6 +144,7 @@ public class XMLhelperController {
         TreeItem<XmlElement> toSelect = XMLTreeItemGen.buildTree(newRootItem,newElement, false);
         tree.setRoot(newRootItem);
         if (toSelect != null) tree.getSelectionModel().select(toSelect);
+        tree.scrollTo(tree.getRow(toSelect));
 
     }
 
@@ -166,8 +167,11 @@ public class XMLhelperController {
         // Rebuild the tree from the new root item and make it the tree root.
         TreeItem<XmlElement> toSelect = XMLTreeItemGen.buildTree(newRootItem,newElement, false);
         tree.setRoot(newRootItem);
-        if (toSelect != null) tree.getSelectionModel().select(toSelect);
-
+        if (toSelect != null) {
+            tree.getSelectionModel().select(toSelect);
+            tree.scrollTo(tree.getRow(toSelect));
+            tree.getFocusModel().focus(tree.getRow(toSelect));
+        }
     }
 
     @FXML
@@ -188,90 +192,21 @@ public class XMLhelperController {
         // Rebuild the tree from the new root item and make it the tree root.
         TreeItem<XmlElement> toSelect = XMLTreeItemGen.buildTree(newRootItem,parent, false);
         tree.setRoot(newRootItem);
-        if (toSelect != null) tree.getSelectionModel().select(toSelect);
+        if (toSelect != null) {
+            tree.getSelectionModel().select(toSelect);
+        }
         toSelect.setExpanded(true);
+        tree.scrollTo(tree.getRow(toSelect));
+        tree.getFocusModel().focus(tree.getRow(toSelect));
         //elementEditor.clear();
     }
 
-    private class XmlElementTreeCellImpl extends TreeCell<XmlElement> {
 
-        private TextField textField;
 
-        public XmlElementTreeCellImpl() {
-        }
 
-        @Override
-        public void startEdit() {
-            super.startEdit();
-            elementEditor.setText("edit HERE!!!");
-
-            if (textField == null) {
-                createTextField();
-            }
-            setText(null);
-            setGraphic(textField);
-            textField.selectAll();
-        }
-
-        @Override
-        public void cancelEdit() {
-            super.cancelEdit();
-            setText(((XmlElement) getItem()).toString());
-            setGraphic(getTreeItem().getGraphic());
-        }
-
-        @Override
-        public void updateItem(XmlElement item, boolean empty) {
-            super.updateItem(item, empty);
-
-            if (empty) {
-                setText(null);
-                setGraphic(null);
-            } else {
-                if (isEditing()) {
-                    if (textField != null) {
-                        textField.setText(getString());
-                    }
-                    setText(null);
-                    setGraphic(textField);
-                } else {
-                    setText(getString());
-                    setGraphic(getTreeItem().getGraphic());
-                }
-            }
-
-        }
-
-        private void createTextField() {
-            textField = new TextField(getString());
-            textField.setOnKeyReleased(new EventHandler<KeyEvent>() {
-
-                @Override
-                public void handle(KeyEvent t) {
-                    if (t.getCode() == KeyCode.ENTER) {
-                        commitEdit(new XmlElement(new DOMElement("Zory")));
-                    } else if (t.getCode() == KeyCode.ESCAPE) {
-                        cancelEdit();
-                    }
-                }
-            });
-        }
-
-        private String getString() {
-            return getItem() == null ? "" : getItem().toString();
-        }
-    }
 
     private void prepare(TreeView tree) {
-//        tree.setEditable(true);
-        // Set the customized cell factory producing the XmlElementTreeCellImpl
-        tree.setCellFactory(new Callback<TreeView<XmlElement>,TreeCell<XmlElement>>(){
-            @Override
-            public TreeCell<XmlElement> call(TreeView<XmlElement> p) {
-                return new XmlElementTreeCellImpl();
-            }
-        });
-        // Get the element editor pane to display the currently element selected
+
         tree.getSelectionModel().selectedItemProperty().addListener(new ChangeListener() {
             @Override
             public void changed(ObservableValue observable, Object oldValue, Object newValue) {
@@ -306,12 +241,12 @@ public class XMLhelperController {
         int psibling=0;
         int nsibling=0;
         TreeItem<XmlElement> sibling = treeItem.previousSibling();
-        while (sibling != null) {
+        while (sibling != null && treeItem.getValue().getE().getName().equals(sibling.getValue().getE().getName())) {
             psibling++;
             sibling = sibling.previousSibling();
         }
         sibling = treeItem.nextSibling();
-        while (sibling != null) {
+        while (sibling != null && treeItem.getValue().getE().getName().equals(sibling.getValue().getE().getName())) {
             nsibling++;
             sibling = sibling.nextSibling();
         }
