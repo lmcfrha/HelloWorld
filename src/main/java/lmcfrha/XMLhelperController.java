@@ -22,10 +22,7 @@ import org.dom4j.tree.DefaultElement;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 
 
 public class XMLhelperController {
@@ -43,6 +40,8 @@ public class XMLhelperController {
     @FXML
     public TextArea  elementEditor;
     @FXML
+    public TextArea  messages;
+    @FXML
     private Button saveButton;
     @FXML
     private Button addButton;
@@ -54,7 +53,7 @@ public class XMLhelperController {
     }
 
     @FXML
-    public void loadFile() throws IOException, SAXException {
+    public void loadFile()  {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open XML File");
         f = fileChooser.showOpenDialog(vBox.getScene().getWindow());
@@ -65,45 +64,72 @@ public class XMLhelperController {
             XMLTreeItemGen.buildTree(rootXmlElement, false);
             tree.setRoot(rootXmlElement);
             prepare(tree);
-        } catch (DocumentException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            messages.appendText(e.toString());
+
         }
     }
 
     @FXML
-    public void saveAs() throws IOException, SAXException {
+    public void saveAs()  {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save XML File");
         File f = fileChooser.showSaveDialog(vBox.getScene().getWindow());
         // Create a file named as person.xml
-        FileOutputStream fos = new FileOutputStream(f);
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(f);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         // Create the pretty print of xml document.
         OutputFormat format = OutputFormat.createPrettyPrint();
         // Create the xml writer by passing outputstream and format
-        XMLWriter writer = new XMLWriter(fos, format);
+        XMLWriter writer = null;
+        try {
+            writer = new XMLWriter(fos, format);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            messages.appendText(e.toString());
+        }
         // Write to the xml document
         //doc.getRootElement().detach();
         doc.setRootElement(((TreeItem<XmlElement>) tree.getRoot()).getValue().getE());
-        writer.write(doc);
+        try {
+            writer.write(doc);
+        } catch (IOException e) {
+            e.printStackTrace();
+            messages.appendText(e.toString());
+        }
         //writer.write((((TreeItem<XmlElement>) tree.getRoot()).getValue().getE()));
         // Flush after done
-        writer.flush();
+        try {
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+            messages.appendText(e.toString());
+        }
 
     }
 
     @FXML
     public void save() throws IOException, SAXException {
-        FileOutputStream fos = new FileOutputStream(f);
-        // Create the pretty print of xml document.
-        OutputFormat format = OutputFormat.createPrettyPrint();
-        // Create the xml writer by passing outputstream and format
-        XMLWriter writer = new XMLWriter(fos, format);
-        // Write to the xml document
-        doc.setRootElement(((TreeItem<XmlElement>) tree.getRoot()).getValue().getE());
-        writer.write(doc);
-        //writer.write((((TreeItem<XmlElement>) tree.getRoot()).getValue().getE()));
-        // Flush after done
-        writer.flush();
+        try {
+            FileOutputStream fos = new FileOutputStream(f);
+            // Create the pretty print of xml document.
+            OutputFormat format = OutputFormat.createPrettyPrint();
+            // Create the xml writer by passing outputstream and format
+            XMLWriter writer = new XMLWriter(fos, format);
+            // Write to the xml document
+            doc.setRootElement(((TreeItem<XmlElement>) tree.getRoot()).getValue().getE());
+            writer.write(doc);
+            //writer.write((((TreeItem<XmlElement>) tree.getRoot()).getValue().getE()));
+            // Flush after done
+            writer.flush();
+        } catch (Exception e) {
+            messages.appendText(e.toString());
+        }
     }
 
 
@@ -121,84 +147,96 @@ public class XMLhelperController {
 
     @FXML
     private void saveClicked() {
-        if (saveButton.isDisabled()) return;
-        // Transform the text in the editor pane to a Document, then a TreeItem
-        TreeItem<XmlElement> selectedItem = (TreeItem<XmlElement>) tree.getSelectionModel().getSelectedItem();
-        // Get the XPath starting from the tree root
-        String elementXPath = getXPathFromRoot(selectedItem, "");
-        // Replace the node in the root element with the new one saved from the text edit pane
-        DOMElement root = ((TreeItem<XmlElement>) tree.getRoot()).getValue().getE();
-        DOMElement oldElement = (DOMElement) root.selectSingleNode(elementXPath);
-        DOMElement newElement = textToXml(elementEditor.getText()).getE();
-        DOMElement parentElement = (DOMElement) oldElement.getParentNode();
-        // Prepare the new root Item from the new root element
-        XmlElement newRoot;
-        if (parentElement != null) {
-            parentElement.replaceChild(newElement,oldElement);
-            newRoot = new XmlElement(root);
-        } else newRoot = new XmlElement(newElement);
-        // Prepare the new root Item from the new root element
-        TreeItem<XmlElement> newRootItem = new TreeItem<>(newRoot);
-        //newRootItem.setExpanded(true);
-        // Rebuild the tree from the new root item and make it the tree root.
-        TreeItem<XmlElement> toSelect = XMLTreeItemGen.buildTree(newRootItem,newElement, false);
-        tree.setRoot(newRootItem);
-        if (toSelect != null) tree.getSelectionModel().select(toSelect);
-        tree.scrollTo(tree.getRow(toSelect));
+        try {
+            if (saveButton.isDisabled()) return;
+            // Transform the text in the editor pane to a Document, then a TreeItem
+            TreeItem<XmlElement> selectedItem = (TreeItem<XmlElement>) tree.getSelectionModel().getSelectedItem();
+            // Get the XPath starting from the tree root
+            String elementXPath = getXPathFromRoot(selectedItem, "");
+            // Replace the node in the root element with the new one saved from the text edit pane
+            DOMElement root = ((TreeItem<XmlElement>) tree.getRoot()).getValue().getE();
+            DOMElement oldElement = (DOMElement) root.selectSingleNode(elementXPath);
+            DOMElement newElement = textToXml(elementEditor.getText()).getE();
+            DOMElement parentElement = (DOMElement) oldElement.getParentNode();
+            // Prepare the new root Item from the new root element
+            XmlElement newRoot;
+            if (parentElement != null) {
+                parentElement.replaceChild(newElement, oldElement);
+                newRoot = new XmlElement(root);
+            } else newRoot = new XmlElement(newElement);
+            // Prepare the new root Item from the new root element
+            TreeItem<XmlElement> newRootItem = new TreeItem<>(newRoot);
+            //newRootItem.setExpanded(true);
+            // Rebuild the tree from the new root item and make it the tree root.
+            TreeItem<XmlElement> toSelect = XMLTreeItemGen.buildTree(newRootItem, newElement, false);
+            tree.setRoot(newRootItem);
+            if (toSelect != null) tree.getSelectionModel().select(toSelect);
+            tree.scrollTo(tree.getRow(toSelect)-5);
+        } catch (Exception e) {
+            messages.appendText(e.toString());
+        }
 
     }
 
     @FXML
     private void addClicked() {
-        if (addButton.isDisabled()) return;
-        TreeItem<XmlElement> selectedItem = (TreeItem<XmlElement>) tree.getSelectionModel().getSelectedItem();
-        // Get the XPath starting from the tree root
-        String elementXPath = getXPathFromRoot(selectedItem, "");
-        // Insert the new node from the text edit pane in the root element, before the old one
-        DOMElement root = ((TreeItem<XmlElement>) tree.getRoot()).getValue().getE();
-        DOMElement oldElement = (DOMElement) root.selectSingleNode(elementXPath);
-        DOMElement newElement = textToXml(elementEditor.getText()).getE();
-        DOMElement parentElement = (DOMElement) oldElement.getParentNode();
-        parentElement.insertBefore(newElement,oldElement);
-        // Prepare the new root Item from the new root element
-        XmlElement newRoot = new XmlElement(root);
-        TreeItem<XmlElement> newRootItem = new TreeItem<>(newRoot);
-        //newRootItem.setExpanded(true);
-        // Rebuild the tree from the new root item and make it the tree root.
-        TreeItem<XmlElement> toSelect = XMLTreeItemGen.buildTree(newRootItem,newElement, false);
-        tree.setRoot(newRootItem);
-        if (toSelect != null) {
-            tree.getSelectionModel().select(toSelect);
-            tree.scrollTo(tree.getRow(toSelect));
-            tree.getFocusModel().focus(tree.getRow(toSelect));
+        try {
+            if (addButton.isDisabled()) return;
+            TreeItem<XmlElement> selectedItem = (TreeItem<XmlElement>) tree.getSelectionModel().getSelectedItem();
+            // Get the XPath starting from the tree root
+            String elementXPath = getXPathFromRoot(selectedItem, "");
+            // Insert the new node from the text edit pane in the root element, before the old one
+            DOMElement root = ((TreeItem<XmlElement>) tree.getRoot()).getValue().getE();
+            DOMElement oldElement = (DOMElement) root.selectSingleNode(elementXPath);
+            DOMElement newElement = textToXml(elementEditor.getText()).getE();
+            DOMElement parentElement = (DOMElement) oldElement.getParentNode();
+            parentElement.insertBefore(newElement, oldElement);
+            // Prepare the new root Item from the new root element
+            XmlElement newRoot = new XmlElement(root);
+            TreeItem<XmlElement> newRootItem = new TreeItem<>(newRoot);
+            //newRootItem.setExpanded(true);
+            // Rebuild the tree from the new root item and make it the tree root.
+            TreeItem<XmlElement> toSelect = XMLTreeItemGen.buildTree(newRootItem, newElement, false);
+            tree.setRoot(newRootItem);
+            if (toSelect != null) {
+                tree.getSelectionModel().select(toSelect);
+                tree.scrollTo(tree.getRow(toSelect)-5);
+                tree.getFocusModel().focus(tree.getRow(toSelect));
+            }
+        } catch (Exception e) {
+            messages.appendText(e.toString());
         }
     }
 
     @FXML
     private void deleteClicked() {
-        if (deleteButton.isDisabled()) return;
-        TreeItem<XmlElement> selectedItem = (TreeItem<XmlElement>) tree.getSelectionModel().getSelectedItem();
-        // Get the XPath starting from the tree root
-        String elementXPath = getXPathFromRoot(selectedItem, "");
-        // Replace the node in the root element with the new one saved from the text edit pane
-        DOMElement root = ((TreeItem<XmlElement>) tree.getRoot()).getValue().getE();
-        DOMElement toDelete = (DOMElement) root.selectSingleNode(elementXPath);
-        DOMElement parent = (DOMElement) toDelete.getParent();
-        toDelete.detach();
-        // Prepare the new root Item from the new root element
-        XmlElement newRoot = new XmlElement(root);
-        TreeItem<XmlElement> newRootItem = new TreeItem<>(newRoot);
-        //newRootItem.setExpanded(true);
-        // Rebuild the tree from the new root item and make it the tree root.
-        TreeItem<XmlElement> toSelect = XMLTreeItemGen.buildTree(newRootItem,parent, false);
-        tree.setRoot(newRootItem);
-        if (toSelect != null) {
-            tree.getSelectionModel().select(toSelect);
+        try {
+            if (deleteButton.isDisabled()) return;
+            TreeItem<XmlElement> selectedItem = (TreeItem<XmlElement>) tree.getSelectionModel().getSelectedItem();
+            // Get the XPath starting from the tree root
+            String elementXPath = getXPathFromRoot(selectedItem, "");
+            // Replace the node in the root element with the new one saved from the text edit pane
+            DOMElement root = ((TreeItem<XmlElement>) tree.getRoot()).getValue().getE();
+            DOMElement toDelete = (DOMElement) root.selectSingleNode(elementXPath);
+            DOMElement parent = (DOMElement) toDelete.getParent();
+            toDelete.detach();
+            // Prepare the new root Item from the new root element
+            XmlElement newRoot = new XmlElement(root);
+            TreeItem<XmlElement> newRootItem = new TreeItem<>(newRoot);
+            //newRootItem.setExpanded(true);
+            // Rebuild the tree from the new root item and make it the tree root.
+            TreeItem<XmlElement> toSelect = XMLTreeItemGen.buildTree(newRootItem, parent, false);
+            tree.setRoot(newRootItem);
+            if (toSelect != null) {
+                tree.getSelectionModel().select(toSelect);
+            }
+            toSelect.setExpanded(true);
+            tree.scrollTo(tree.getRow(toSelect)-5);
+            tree.getFocusModel().focus(tree.getRow(toSelect));
+            //elementEditor.clear();
+        } catch (Exception e) {
+            messages.appendText(e.toString());
         }
-        toSelect.setExpanded(true);
-        tree.scrollTo(tree.getRow(toSelect));
-        tree.getFocusModel().focus(tree.getRow(toSelect));
-        //elementEditor.clear();
     }
 
 
@@ -229,6 +267,7 @@ public class XMLhelperController {
             changedItem = (DOMDocument) reader.read(input);
         } catch (DocumentException e) {
             e.printStackTrace();
+            messages.appendText(e.toString());
         }
 
         return (new XmlElement((DOMElement) changedItem.getRootElement()));
