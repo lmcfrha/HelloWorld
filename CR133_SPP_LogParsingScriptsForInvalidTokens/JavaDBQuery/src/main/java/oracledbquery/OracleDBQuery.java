@@ -3,7 +3,6 @@ package oracledbquery;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.*;
 import java.util.Properties;
 
@@ -101,6 +100,12 @@ public class OracleDBQuery {
 			        }
 			        rs.close();
 		      }
+		      else if (args[0].equals("VVMquery")) {
+		    	  String selectSQL = dbProps.getProperty("sqlVVMquery");
+		    	  preparedStatement = conn.prepareStatement(selectSQL);
+		    	  ResultSet rs = preparedStatement.executeQuery();
+		    	  printResultSet(rs);
+		      }
 		      //STEP 6: Clean-up environment
 		      
 		      preparedStatement.close();
@@ -128,6 +133,22 @@ public class OracleDBQuery {
 //		   System.out.println("Goodbye!");
 		}//end main
 	
+		private static void printResultSet(ResultSet rs) {
+			try {
+				int colNb = rs.getMetaData().getColumnCount();
+				int i;
+				while (rs.next()) {
+					for (i=1; i <= colNb; ++i) {
+						System.out.print(rs.getString(i)+" ");
+					}
+					System.out.println("|");
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		   	
+		}
 	}
 
 
